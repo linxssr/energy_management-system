@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}能耗监测数据{% endblock %}
+
+{% block content %}
+    <h1 class="page-title">能耗监测数据</h1>
+
+    <div class="filter-bar">
+        <div class="filter-item">
+            <label>设备编号</label>
+            <input type="text" id="s_meter_id" placeholder="输入设备ID" value="{{ filters.meter_id or '' }}">
+        </div>
+        <div class="filter-item">
+            <label>厂区编号</label>
+            <select id="s_factory_id">
+                <option value="">全部</option>
+                {% for f in factories %}
+                <option value="{{ f }}" {% if filters.factory_id == f %}selected{% endif %}>{{ f }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-item">
+            <label>数据质量</label>
+            <select id="s_data_quality">
+                <option value="">全部</option>
+                <option value="优" {% if filters.data_quality == '优' %}selected{% endif %}>优</option>
+                <option value="中" {% if filters.data_quality == '中' %}selected{% endif %}>中</option>
+                <option value="差" {% if filters.data_quality == '差' %}selected{% endif %}>差</option>
+            </select>
+        </div>
+        <div class="filter-item">
+            <label>开始时间</label>
+            <input type="datetime-local" id="s_start_time" value="{{ filters.start_time or '' }}">
+        </div>
+        <div class="filter-item">
+            <button class="btn btn-primary" onclick="filterMonitorData()">查询</button>
+            <a href="{{ url_for('energy.monitor_data') }}" class="btn">重置</a>
+        </div>
+        <div class="filter-item" style="margin-left: auto;">
+             <button class="btn btn-success" onclick="simulateCollection()">+ 模拟采集数据</button>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>数据编号</th>
+                    <th>设备编号</th>
+                    <th>能源类型</th>
+                    <th>采集时间</th>
+                    <th>能耗值</th>
+                    <th>单位</th>
+                    <th>数据质量</th>
+                    <th>所属厂区</th>
+                    <th>状态</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if monitor_datas %}
+                    {% for data in monitor_datas %}
+                    <tr>
+                        <td>{{ data.data_id }}</td>
+                        <td>{{ data.meter_id }}</td>
+                        <td>{{ data.meter.energy_type }}</td>
+                        <td>{{ data.collect_time }}</td>
+                        <td style="font-weight: bold;">{{ data.energy_value }}</td>
+                        <td>{{ data.unit }}</td>
+                        <td>
+                            {% if data.data_quality == '优' %}
+                                <span class="status-badge status-normal">优</span>
+                            {% else %}
+                                <span class="status-badge status-fault">{{ data.data_quality }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ data.factory_id }}</td>
+                        <td>
+                            {% if data.is_verified %}
+                                <span style="color: var(--success-color);">已核实</span>
+                            {% else %}
+                                <span style="color: #f39c12;">待核实</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if not data.is_verified and data.data_quality in ['中', '差'] %}
+                                <button class="btn btn-primary btn-sm" onclick="verifyData('{{ data.data_id }}')">人工核实</button>
+                            {% else %}
+                                <span style="color:#ccc;">-</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="10" style="text-align: center; color: #999;">暂无监测数据</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script src="{{ url_for('static', filename='js/monitor_data.js') }}"></script>
+{% endblock %}

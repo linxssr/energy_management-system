@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}能耗计量设备管理{% endblock %}
+
+{% block content %}
+    <h1 class="page-title">能耗计量设备管理</h1>
+
+    <div class="filter-bar">
+        <div class="filter-item">
+            <label>能源类型</label>
+            <select id="filter_energy_type">
+                <option value="">全部</option>
+                <option value="水">水</option>
+                <option value="蒸汽">蒸汽</option>
+                <option value="天然气">天然气</option>
+            </select>
+        </div>
+        <div class="filter-item">
+            <label>运行状态</label>
+            <select id="filter_run_status">
+                <option value="">全部</option>
+                <option value="正常">正常</option>
+                <option value="故障">故障</option>
+            </select>
+        </div>
+        <div class="filter-item">
+            <button class="btn btn-primary" onclick="searchMeters()">查询</button>
+            <button class="btn" onclick="resetMeterFilter()">重置</button>
+        </div>
+        <div class="filter-item" style="margin-left: auto;">
+            <button class="btn btn-success" onclick="showAddMeterModal()">+ 新增设备</button>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>设备编号</th>
+                    <th>能源类型</th>
+                    <th>安装位置</th>
+                    <th>管径规格</th>
+                    <th>通讯协议</th>
+                    <th>运行状态</th>
+                    <th>校准周期</th>
+                    <th>生产厂家</th>
+                    <th width="150">操作</th>
+                </tr>
+            </thead>
+            <tbody id="meterTableBody">
+                {% if meters %}
+                    {% for meter in meters %}
+                        <tr>
+                            <td>{{ meter.meter_id }}</td>
+                            <td>{{ meter.energy_type }}</td>
+                            <td>{{ meter.install_location }}</td>
+                            <td>{{ meter.pipe_spec }}</td>
+                            <td>{{ meter.comm_protocol }}</td>
+                            <td>
+                                <span class="status-badge {{ 'status-normal' if meter.run_status == '正常' else 'status-fault' }}">
+                                    {{ meter.run_status }}
+                                </span>
+                            </td>
+                            <td>{{ meter.calib_cycle }} 月</td>
+                            <td>{{ meter.manufacturer }}</td>
+                            <td>
+                                <button class="btn btn-primary btn-sm" 
+                                        data-meter='{{ meter.to_dict()|tojson|safe }}' 
+                                        onclick="prepareEditMeter(this)">
+                                    编辑
+                                </button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteMeter('{{ meter.meter_id }}')">删除</button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="9" style="text-align: center; color: #999;">暂无数据</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="modal" id="meterModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">新增设备</h3>
+                <button class="modal-close" onclick="controlModal('meterModal', false)">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="meterForm">
+                    <input type="hidden" id="is_edit" value="false">
+                    <div class="form-group">
+                        <label>设备编号 <span style="color:red">*</span></label>
+                        <input type="text" id="meter_id" required>
+                    </div>
+                    <div class="form-group">
+                        <label>能源类型 <span style="color:red">*</span></label>
+                        <select id="energy_type" required>
+                            <option value="水">水</option>
+                            <option value="蒸汽">蒸汽</option>
+                            <option value="天然气">天然气</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>安装位置</label>
+                        <input type="text" id="install_location">
+                    </div>
+                    <div class="form-group">
+                        <label>管径规格 (如 DN50)</label>
+                        <input type="text" id="pipe_spec">
+                    </div>
+                    <div class="form-group">
+                        <label>通讯协议</label>
+                        <select id="comm_protocol">
+                            <option value="RS485">RS485</option>
+                            <option value="Lora">Lora</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>运行状态</label>
+                        <select id="run_status">
+                            <option value="正常">正常</option>
+                            <option value="故障">故障</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>校准周期 (月)</label>
+                        <input type="number" id="calib_cycle" value="12">
+                    </div>
+                    <div class="form-group">
+                        <label>生产厂家</label>
+                        <input type="text" id="manufacturer">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="controlModal('meterModal', false)">取消</button>
+                <button class="btn btn-primary" onclick="submitMeter()">保存</button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script src="{{ url_for('static', filename='js/meter_manage.js') }}"></script>
+{% endblock %}

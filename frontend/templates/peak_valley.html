@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}峰谷能耗报表{% endblock %}
+
+{% block content %}
+    <h1 class="page-title">峰谷能耗报表 & 成本分析</h1>
+
+    <div class="filter-bar">
+        <div class="filter-item">
+            <label>厂区编号</label>
+            <select id="pv_factory">
+                <option value="all">所有厂区</option>
+                {% for f in factories %}
+                <option value="{{ f }}">{{ f }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-item">
+            <label>统计日期</label>
+            <input type="date" id="pv_date" value="{{ today_date }}">
+        </div>
+        <div class="filter-item">
+            <label>能源类型</label>
+            <select id="pv_type">
+                <option value="电">电 (kWh)</option>
+                <option value="水">水 (m³)</option>
+                <option value="天然气">天然气 (m³)</option>
+            </select>
+        </div>
+        <div class="filter-item">
+            <button class="btn btn-primary" onclick="loadPeakValleyData()">生成报表</button>
+        </div>
+    </div>
+
+    <div class="stat-cards">
+        <div class="stat-card">
+            <div class="stat-label">总能耗</div>
+            <div class="stat-value" id="total_usage">-</div>
+            <div class="stat-unit" id="usage_unit">kWh</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">总成本</div>
+            <div class="stat-value" style="color: #e74c3c;" id="total_cost">-</div>
+            <div class="stat-unit">元</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">尖/峰段占比</div>
+            <div class="stat-value" style="color: #f39c12;" id="peak_ratio">-</div>
+            <div class="stat-unit">%</div>
+        </div>
+    </div>
+
+    <div style="background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 25px; box-shadow: 0 2px 6px rgba(0,0,0,0.05);">
+        <h3 style="margin-bottom: 15px; color: #2c3e50;">时段能耗分布</h3>
+        <div style="height: 350px;">
+            <canvas id="costChart"></canvas>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>统计日期</th>
+                    <th>厂区</th>
+                    <th>尖峰能耗</th>
+                    <th>高峰能耗</th>
+                    <th>平段能耗</th>
+                    <th>低谷能耗</th>
+                    <th>总能耗</th>
+                    <th>总成本(元)</th>
+                </tr>
+            </thead>
+            <tbody id="reportTableBody">
+                </tbody>
+        </table>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script src="{{ url_for('static', filename='js/peak_valley.js') }}"></script>
+{% endblock %}
