@@ -143,4 +143,15 @@
 
 {% block script %}
     <script src="{{ url_for('static', filename='js/meter_manage.js') }}"></script>
+    <script>
+        // 页面加载时从URL参数初始化筛选条件
+        document.addEventListener('DOMContentLoaded', function() {
+            const params = new URLSearchParams(window.location.search);
+            const energyType = params.get('energy_type') || '';
+            const runStatus = params.get('run_status') || '';
+            
+            document.getElementById('filter_energy_type').value = energyType;
+            document.getElementById('filter_run_status').value = runStatus;
+        });
+    </script>
 {% endblock %}
